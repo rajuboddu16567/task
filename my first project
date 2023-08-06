@@ -1,0 +1,21 @@
+node{
+    stage('clone repo'){
+        git credentialsId: '8cd17ab4-6429-413b-a51d-8233881562ab', url: 'https://github.com/rajuboddu16567/maven-web-app.git'
+    }
+    stage('maven build'){
+        sh 'mvn clean package'
+    }
+    stage('code review'){
+        withSonarQubeEnv('sonar-server-9.9.1'){
+            sh "mvn sonar:sonar"
+        }
+    }
+    stage('upload build artifactory'){
+        nexusArtifactUploader artifacts: [[artifactId: '01-maven-web-app', classifier: '', file: 'target/01-maven-web-app.war', type: 'war']], credentialsId: 'nexus-key', groupId: 'in.rajuit', nexusUrl: '3.88.32.195:8081', nexusVersion: 'nexus3', protocol: 'http', repository: 'rajuit-snapshot', version: '3.0-SNAPSHOT'
+    }
+    stage('deploy to server'){
+        sshagent(['tomcat-server']){
+         sh 'scp -o StrictHostKeyChecking=no target/01-maven-web-app.war ec2-user@34.201.73.219:/opt/tom/webapps'
+        }
+    }
+}
