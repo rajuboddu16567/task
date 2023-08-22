@@ -11,3 +11,4 @@ resource "aws_s3_bucket" "rajubala1234" {
     Name = "bucket2000"
     Environment = "Test"
   }
+}
